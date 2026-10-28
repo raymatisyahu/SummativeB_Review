@@ -1,0 +1,745 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grade 6 Math Battle Quest</title>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:12px;font-family:Arial,sans-serif;background:linear-gradient(135deg,#07152e,#1675b8);color:#17243a}
+.app{max-width:1050px;margin:auto;background:white;border-radius:18px;overflow:hidden}
+header{background:#10234c;color:white;text-align:center;padding:22px}
+header h1{font-size:clamp(27px,4vw,40px);margin:0 0 10px}
+main{padding:clamp(14px,3vw,28px)}
+h2{color:#10234c}
+button,input,select{font:inherit}
+button{border:0;border-radius:10px;padding:13px 18px;font-size:18px;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+.primary{background:#10234c;color:white}
+.hidden{display:none!important}
+label{font-size:18px;font-weight:bold}
+input,select{display:block;width:100%;margin-top:8px;padding:12px;border:2px solid #cbd5e1;border-radius:9px;font-size:19px;background:white}
+.details{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:15px;margin:18px 0}
+.instructions{background:#e7f5ff;border-left:6px solid #1687e8;padding:16px;border-radius:10px;font-size:18px;line-height:1.6}
+.hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:10px;margin:15px 0 22px}
+.hero-choice{background:#e7f5ff;color:#10234c;border:3px solid transparent;min-height:100px}
+.hero-choice.selected{border-color:#1687e8}
+.controls{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:20px}
+.status{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-weight:bold;font-size:18px}
+.timer{background:#fff0c9;color:#784900;padding:10px;border-radius:8px}
+.timer.danger{background:#fee2e2;color:#b91c1c;animation:pulse .5s infinite alternate}
+.progress{height:12px;background:#dce5ef;border-radius:20px;overflow:hidden;margin:18px 0}
+#progressBar{height:100%;width:0;background:#1687e8;transition:width .2s}
+.arena{background:linear-gradient(#182d58,#344d80 65%,#192440 65%);color:white;padding:18px;border-radius:15px;margin:18px 0}
+.arena-title{text-align:center;color:#ffe6a0;font-weight:bold;margin-bottom:12px}
+.fighters{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.fighter{text-align:center;min-width:0}
+.fighter-name{font-size:18px;font-weight:bold}
+.character{font-size:clamp(60px,10vw,100px);line-height:1.4;display:inline-block}
+.health-label{display:flex;justify-content:space-between;font-size:14px;margin-bottom:5px}
+.health{height:15px;background:#10172a;border-radius:12px;overflow:hidden}
+.health-fill{height:100%;width:100%;background:#36df7b;transition:width .4s}
+.monster-health{background:#ff5364}
+#battleMessage{text-align:center;color:#ffe7a1;font-size:18px;font-weight:bold;margin-top:15px}
+#questionText{font-size:clamp(24px,3.3vw,34px);line-height:1.4}
+.topic{display:inline-block;background:#e0f2fe;color:#075985;padding:8px 12px;border-radius:8px;font-weight:bold}
+.options{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.option{display:flex;align-items:center;text-align:left;gap:12px;width:100%;background:#f4f7fc;color:#17243a;border:2px solid #d8e2ef;font-size:clamp(18px,2.3vw,23px)}
+.option .letter{background:#dcecff;color:#10234c;padding:8px 12px;border-radius:7px}
+.option.selected{border-color:#1687e8;background:#e4f3ff}
+.feedback{padding:14px;border-radius:10px;font-size:18px;line-height:1.5;margin-top:16px}
+.good{background:#dcfce7;color:#166534}
+.bad{background:#fee2e2;color:#991b1b}
+#resultScore{font-size:30px;font-weight:bold;color:#10234c}
+.review-item{padding:14px;border:1px solid #d4deea;border-radius:10px;margin:12px 0;line-height:1.6;break-inside:avoid}
+.correct-answer{color:#15803d;font-weight:bold}
+.wrong-answer{color:#b91c1c;font-weight:bold}
+footer{text-align:center;background:#edf5fc;padding:14px;color:#38516e}
+@keyframes pulse{to{transform:scale(1.05)}}
+@keyframes attack{50%{transform:translateX(25px) scale(1.15)}}
+@keyframes hit{50%{transform:translateX(-10px);filter:brightness(2)}}
+.attack{animation:attack .4s ease}
+.hit{animation:hit .4s ease}
+@media(max-width:600px){.options{grid-template-columns:1fr}.controls button{flex:1}}
+@media print{body{background:white;padding:0}.app{box-shadow:none}.arena,.status,.progress,.options,.controls,footer{display:none!important}}
+</style>
+</head>
+
+<body>
+<div class="app">
+<header>
+<h1>⚔️ MATH BATTLE QUEST ⚔️</h1>
+<p>GRADE 6 MATHEMATICS REVIEW</p>
+<p>100-Question Bank | 30 Random Questions | 5 Misses = GAME OVER</p>
+</header>
+
+<main>
+<section id="intro">
+<h2>Welcome, Math Hero!</h2>
+
+<div class="details">
+<label>Learner's Name
+<input id="studentName" maxlength="80" placeholder="Enter your full name">
+</label>
+
+<label>Section
+<select id="studentSection">
+<option value="">Choose your section</option>
+<option>Grade 6 - Corrales</option>
+<option>Grade 6 - Narvaez</option>
+<option>Grade 6 - Dianga</option>
+</select>
+</label>
+</div>
+
+<h2>Choose Your Hero</h2>
+<p>Select your character before starting.</p>
+
+<div class="hero-grid" id="heroChoices">
+<button type="button" class="hero-choice selected" data-hero="🦸" data-name="Super Hero">🦸<br>Super Hero</button>
+<button type="button" class="hero-choice" data-hero="🧙" data-name="Wizard">🧙<br>Wizard</button>
+<button type="button" class="hero-choice" data-hero="🧝" data-name="Elf Hero">🧝<br>Elf Hero</button>
+<button type="button" class="hero-choice" data-hero="🥷" data-name="Ninja">🥷<br>Ninja</button>
+<button type="button" class="hero-choice" data-hero="🦹" data-name="Shadow Hero">🦹<br>Shadow Hero</button>
+</div>
+
+<div class="instructions">
+<b>MISSION INSTRUCTIONS</b>
+<ol>
+<li>Enter your name and select your section and hero.</li>
+<li>The game randomly selects 30 questions from a 100-item bank.</li>
+<li>You have 60 seconds to answer each question.</li>
+<li>Choose one answer: A, B, C, or D.</li>
+<li>Each correct answer earns 1 point and damages the monster.</li>
+<li>Each wrong answer or timeout uses one miss.</li>
+<li>You have only 5 misses. When all five are used, the game ends immediately.</li>
+<li>Your score and answer key will appear at the end.</li>
+</ol>
+<b>Topics:</b>
+<ul>
+<li>Percentages, Base, and Rate</li>
+<li>Fractions, Decimals, and Percentages</li>
+<li>Exponential Notation</li>
+</ul>
+</div>
+
+<p id="formError" class="feedback bad hidden">Please enter your name and select your section.</p>
+
+<div class="controls">
+<span>⏱ 60 seconds per question | ⭐ 30 points maximum</span>
+<button id="startBtn" class="primary">⚔️ Start Battle</button>
+</div>
+</section>
+
+<section id="quiz" class="hidden">
+<div class="status">
+<span id="questionCount">Question 1 of 30</span>
+<span id="scoreLive">⭐ Score: 0</span>
+<span id="missesLive">❤️ Misses left: 5</span>
+<span id="timer" class="timer">60 seconds</span>
+</div>
+
+<div class="progress"><div id="progressBar"></div></div>
+
+<div class="arena">
+<div class="arena-title">⚡ THE MATHEMATICS ARENA ⚡</div>
+<div class="fighters">
+<div class="fighter">
+<div class="fighter-name" id="heroName">MATH HERO</div>
+<div id="hero" class="character">🦸</div>
+<div class="health-label"><span>Hero HP</span><span id="heroHP">100 / 100</span></div>
+<div class="health"><div id="heroBar" class="health-fill"></div></div>
+</div>
+<div class="fighter">
+<div class="fighter-name">👹 MATH MONSTER</div>
+<div id="monster" class="character">👾</div>
+<div class="health-label"><span>Monster HP</span><span id="monsterHP">100 / 100</span></div>
+<div class="health"><div id="monsterBar" class="health-fill monster-health"></div></div>
+</div>
+</div>
+<div id="battleMessage">Answer correctly to attack!</div>
+</div>
+
+<div id="topic" class="topic"></div>
+<h2 id="questionText"></h2>
+<div id="options" class="options"></div>
+<div id="feedback" class="feedback hidden" aria-live="polite"></div>
+
+<div class="controls">
+<button id="nextBtn" class="primary" disabled>Next Question ➜</button>
+</div>
+</section>
+
+<section id="results" class="hidden">
+<h2 id="resultHeading">🏆 Battle Results</h2>
+<div id="studentSummary" class="instructions"></div>
+<p id="resultScore"></p>
+<p id="resultMessage"></p>
+<p id="battleSummary"></p>
+<h2>Answer Key and Explanations</h2>
+<div id="answerKey"></div>
+<div class="controls">
+<button id="restartBtn" class="primary">🔄 New Game</button>
+<button id="printBtn">Print Results</button>
+</div>
+</section>
+</main>
+
+<footer>GRADE 6 MATH BATTLE QUEST • THINK FAST • LEARN MORE!</footer>
+</div>
+
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+const QUESTIONS_PER_GAME = 30;
+const SECONDS_PER_QUESTION = 60;
+
+let chosenHero = "🦸";
+let chosenHeroName = "Super Hero";
+let studentName = "";
+let studentSection = "";
+let bank = [];
+let gameQuestions = [];
+let responses = [];
+let current = 0;
+let score = 0;
+let misses = 5;
+let heroHP = 100;
+let monsterHP = 100;
+let timeLeft = SECONDS_PER_QUESTION;
+let timerId = null;
+let locked = false;
+let gameOver = false;
+let audioContext = null;
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function sound(freq = 440, duration = 0.12, type = "sine") {
+  try {
+    audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
+    if (audioContext.state === "suspended") audioContext.resume();
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    osc.start();
+    osc.stop(audioContext.currentTime + duration);
+  } catch (e) {}
+}
+
+function addQuestion(topic, question, answer, wrongAnswers, explanation) {
+  const choices = [];
+  [String(answer), ...wrongAnswers.map(String)].forEach(v => {
+    if (!choices.includes(v)) choices.push(v);
+  });
+
+  let n = 1;
+  while (choices.length < 4) {
+    const extra = String(Number(answer) + n * 7);
+    if (!choices.includes(extra)) choices.push(extra);
+    n++;
+  }
+
+  const mixed = shuffle(choices.slice(0, 4));
+  bank.push({
+    topic,
+    q: question,
+    choices: mixed,
+    a: mixed.indexOf(String(answer)),
+    exp: explanation
+  });
+}
+
+function makeNumericQuestion(topic, question, answer, explanation, step = 5) {
+  const wrong = [];
+  let offset = 1;
+
+  while (wrong.length < 3) {
+    const candidate = answer + step * offset;
+    const other = answer - step * offset;
+
+    if (candidate !== answer && !wrong.includes(String(candidate))) {
+      wrong.push(String(candidate));
+    }
+    if (wrong.length < 3 && other >= 0 && other !== answer && !wrong.includes(String(other))) {
+      wrong.push(String(other));
+    }
+    offset++;
+  }
+
+  addQuestion(topic, question, String(answer), wrong, explanation);
+}
+
+/* 40 QUESTIONS: PERCENTAGE, BASE, AND RATE */
+function buildPercentageQuestions() {
+  const rates = [10, 20, 25, 30, 40, 50, 60, 75, 80, 15];
+  const bases = [80, 100, 120, 160, 200, 240, 300, 400, 500, 600];
+
+  for (let i = 0; i < 20; i++) {
+    const rate = rates[i % rates.length];
+    const base = bases[(i * 3) % bases.length];
+    const percent = base * rate / 100;
+
+    makeNumericQuestion(
+      "Percentages, Base, and Rate",
+      `What is ${rate}% of ${base}?`,
+      percent,
+      `Percentage = Base × Rate. ${base} × ${rate / 100} = ${percent}.`,
+      5
+    );
+  }
+
+  for (let i = 0; i < 10; i++) {
+    const base = bases[i];
+    const rate = rates[(i + 2) % rates.length];
+    const part = base * rate / 100;
+
+    makeNumericQuestion(
+      "Percentages, Base, and Rate",
+      `${part} is what percent of ${base}?`,
+      rate,
+      `Rate = Percentage ÷ Base. ${part} ÷ ${base} = ${rate / 100}, or ${rate}%.`,
+      5
+    );
+  }
+
+  for (let i = 0; i < 10; i++) {
+    const base = bases[(i + 1) % bases.length];
+    const rate = rates[(i + 4) % rates.length];
+    const part = base * rate / 100;
+
+    makeNumericQuestion(
+      "Percentages, Base, and Rate",
+      `${part} is ${rate}% of what number?`,
+      base,
+      `Base = Percentage ÷ Rate. ${part} ÷ ${rate / 100} = ${base}.`,
+      20
+    );
+  }
+}
+
+/* 30 QUESTIONS: FRACTIONS, DECIMALS, AND PERCENTAGES */
+function buildConversionQuestions() {
+  const fractions = [
+    [1, 2, 50], [1, 4, 25], [3, 4, 75], [1, 5, 20], [2, 5, 40],
+    [3, 5, 60], [4, 5, 80], [1, 10, 10], [7, 10, 70], [9, 10, 90]
+  ];
+
+  for (let i = 0; i < 10; i++) {
+    const [num, den, pct] = fractions[i];
+    addQuestion(
+      "Fractions, Decimals, and Percentages",
+      `Convert ${num}/${den} to a percentage.`,
+      `${pct}%`,
+      [`${pct + 10}%`, `${Math.max(0, pct - 10)}%`, `${Math.min(100, pct + 20)}%`],
+      `${num} ÷ ${den} = ${num / den}. Multiply by 100 to get ${pct}%.`
+    );
+  }
+
+  const decimals = [0.2, 0.4, 0.6, 0.8, 0.25, 0.5, 0.75, 0.1, 0.35, 0.9];
+
+  for (const decimal of decimals) {
+    const pct = decimal * 100;
+    addQuestion(
+      "Fractions, Decimals, and Percentages",
+      `Convert ${decimal} to a percentage.`,
+      `${pct}%`,
+      [`${pct / 10}%`, `${Math.min(100, pct + 10)}%`, `${Math.max(0, pct - 15)}%`],
+      `Multiply the decimal by 100: ${decimal} × 100 = ${pct}%.`
+    );
+  }
+
+  const percentages = [10, 20, 25, 30, 40, 50, 60, 70, 75, 80];
+
+  for (const pct of percentages) {
+    const decimal = (pct / 100).toString();
+    const wrong = [
+      (pct / 10).toString(),
+      ((pct + 10) / 100).toString(),
+      (Math.max(0, pct - 5) / 100).toString()
+    ];
+
+    addQuestion(
+      "Fractions, Decimals, and Percentages",
+      `Convert ${pct}% to a decimal.`,
+      decimal,
+      wrong,
+      `Divide the percentage by 100: ${pct} ÷ 100 = ${decimal}.`
+    );
+  }
+}
+
+/* 30 QUESTIONS: EXPONENTIAL NOTATION */
+function buildExponentialQuestions() {
+  const bases = [2, 3, 4, 5, 6, 7, 8, 9, 10, 12];
+
+  for (let i = 0; i < 10; i++) {
+    const b = bases[i];
+    const answer = b * b;
+
+    makeNumericQuestion(
+      "Exponential Notation",
+      `What is the value of ${b}²?`,
+      answer,
+      `${b}² means ${b} × ${b} = ${answer}.`,
+      Math.max(4, b)
+    );
+  }
+
+  for (const b of bases) {
+    addQuestion(
+      "Exponential Notation",
+      `In ${b}³, what is the base?`,
+      String(b),
+      [String(b + 1), String(b + 2), "3"],
+      `The base is the number being multiplied repeatedly. The base is ${b}.`
+    );
+  }
+
+  for (const b of bases) {
+    addQuestion(
+      "Exponential Notation",
+      `In ${b}², what is the exponent?`,
+      "2",
+      ["3", String(b), "1"],
+      "The exponent tells how many times the base is used as a factor. The exponent is 2."
+    );
+  }
+}
+
+function buildBank() {
+  bank = [];
+  buildPercentageQuestions();
+  buildConversionQuestions();
+  buildExponentialQuestions();
+
+  if (bank.length !== 100) {
+    throw new Error("Question bank error: expected 100 questions, got " + bank.length);
+  }
+}
+
+function updateHealth() {
+  $("heroHP").textContent = heroHP + " / 100";
+  $("monsterHP").textContent = monsterHP + " / 100";
+  $("heroBar").style.width = heroHP + "%";
+  $("monsterBar").style.width = monsterHP + "%";
+}
+
+function animate(id, className) {
+  const el = $(id);
+  el.classList.remove("attack", "hit");
+  void el.offsetWidth;
+  el.classList.add(className);
+  setTimeout(() => el.classList.remove(className), 450);
+}
+
+function startGame() {
+  studentName = $("studentName").value.trim();
+  studentSection = $("studentSection").value;
+
+  if (!studentName || !studentSection) {
+    $("formError").classList.remove("hidden");
+    return;
+  }
+
+  $("formError").classList.add("hidden");
+  clearInterval(timerId);
+
+  gameQuestions = shuffle(bank).slice(0, QUESTIONS_PER_GAME);
+  responses = [];
+  current = 0;
+  score = 0;
+  misses = 5;
+  heroHP = 100;
+  monsterHP = 100;
+  gameOver = false;
+
+  $("hero").textContent = chosenHero;
+  $("heroName").textContent = chosenHeroName + " — " + studentName;
+  $("battleMessage").textContent = "Battle started! Choose your answer!";
+  updateHealth();
+
+  $("intro").classList.add("hidden");
+  $("results").classList.add("hidden");
+  $("quiz").classList.remove("hidden");
+
+  showQuestion();
+}
+
+function showQuestion() {
+  clearInterval(timerId);
+  locked = false;
+  timeLeft = SECONDS_PER_QUESTION;
+
+  const item = gameQuestions[current];
+
+  $("questionCount").textContent = `Question ${current + 1} of ${gameQuestions.length}`;
+  $("scoreLive").textContent = `⭐ Score: ${score}`;
+  $("missesLive").textContent = `❤️ Misses left: ${misses}`;
+  $("progressBar").style.width = (current / gameQuestions.length * 100) + "%";
+  $("topic").textContent = item.topic;
+  $("questionText").textContent = item.q;
+
+  $("feedback").className = "feedback hidden";
+  $("feedback").textContent = "";
+  $("nextBtn").disabled = true;
+  $("nextBtn").textContent = current === gameQuestions.length - 1
+    ? "View Results ➜" : "Next Question ➜";
+
+  const holder = $("options");
+  holder.replaceChildren();
+
+  item.choices.forEach((choice, index) => {
+    const btn = document.createElement("button");
+    btn.className = "option";
+
+    const letter = document.createElement("span");
+    letter.className = "letter";
+    letter.textContent = "ABCD"[index];
+
+    const text = document.createElement("span");
+    text.textContent = choice;
+
+    btn.append(letter, text);
+    btn.addEventListener("click", () => selectAnswer(index));
+    holder.appendChild(btn);
+  });
+
+  updateTimer();
+  timerId = setInterval(() => {
+    timeLeft--;
+    updateTimer();
+
+    if (timeLeft <= 0) {
+      clearInterval(timerId);
+      timeExpired();
+    } else if (timeLeft <= 5) {
+      sound(260, 0.06, "square");
+    }
+  }, 1000);
+}
+
+function updateTimer() {
+  $("timer").textContent = timeLeft + " seconds";
+  $("timer").classList.toggle("danger", timeLeft <= 10);
+}
+
+function battle(correct, timedOut = false) {
+  if (correct) {
+    monsterHP = Math.max(0, monsterHP - 10);
+    animate("hero", "attack");
+    animate("monster", "hit");
+    $("battleMessage").textContent = "⚔️ Direct hit! The monster loses 10 HP!";
+    sound(660, 0.15, "triangle");
+    setTimeout(() => sound(880, 0.12, "triangle"), 100);
+  } else {
+    heroHP = Math.max(0, heroHP - 10);
+    animate("monster", "attack");
+    animate("hero", "hit");
+    $("battleMessage").textContent = timedOut
+      ? "⏰ Time is up! The monster attacks!"
+      : "💢 Wrong answer! The monster attacks!";
+    sound(140, 0.2, "sawtooth");
+  }
+  updateHealth();
+}
+
+function disableOptions() {
+  $("options").querySelectorAll("button").forEach(btn => btn.disabled = true);
+}
+
+function selectAnswer(index) {
+  if (locked || gameOver) return;
+
+  locked = true;
+  clearInterval(timerId);
+
+  const item = gameQuestions[current];
+  const correct = index === item.a;
+  responses[current] = index;
+
+  if (correct) {
+    score++;
+  } else {
+    misses--;
+  }
+
+  battle(correct);
+  disableOptions();
+  $("options").children[index].classList.add("selected");
+
+  $("feedback").className = "feedback " + (correct ? "good" : "bad");
+  $("feedback").textContent = (correct ? "Correct! " : "Incorrect. ") + item.exp;
+
+  $("scoreLive").textContent = `⭐ Score: ${score}`;
+  $("missesLive").textContent = `❤️ Misses left: ${misses}`;
+
+  $("nextBtn").disabled = false;
+
+  if (misses <= 0) {
+    gameOver = true;
+    $("feedback").textContent += " GAME OVER! You used all five misses.";
+    $("nextBtn").textContent = "View GAME OVER Results ➜";
+    $("battleMessage").textContent = "💀 GAME OVER!";
+  }
+}
+
+function timeExpired() {
+  if (locked || gameOver) return;
+
+  locked = true;
+  responses[current] = null;
+  misses--;
+
+  battle(false, true);
+  disableOptions();
+
+  $("feedback").className = "feedback bad";
+  $("feedback").textContent = "Time is up! " + gameQuestions[current].exp;
+  $("missesLive").textContent = `❤️ Misses left: ${misses}`;
+  $("nextBtn").disabled = false;
+
+  if (misses <= 0) {
+    gameOver = true;
+    $("feedback").textContent += " GAME OVER! You used all five misses.";
+    $("nextBtn").textContent = "View GAME OVER Results ➜";
+    $("battleMessage").textContent = "💀 GAME OVER!";
+  }
+}
+
+function nextQuestion() {
+  if (!locked) return;
+
+  if (gameOver || current >= gameQuestions.length - 1) {
+    finishGame();
+  } else {
+    current++;
+    showQuestion();
+  }
+}
+
+function finishGame() {
+  clearInterval(timerId);
+  $("quiz").classList.add("hidden");
+  $("results").classList.remove("hidden");
+
+  const answered = responses.filter(v => v !== undefined).length;
+  const percentage = Math.round(score / QUESTIONS_PER_GAME * 100);
+
+  $("resultHeading").textContent = gameOver
+    ? "💀 GAME OVER — BATTLE RESULTS"
+    : "🏆 BATTLE RESULTS";
+
+  const summary = $("studentSummary");
+  summary.replaceChildren();
+
+  [
+    ["Learner Name", studentName],
+    ["Section", studentSection],
+    ["Selected Hero", chosenHeroName + " " + chosenHero],
+    ["Questions Attempted", answered + " / " + QUESTIONS_PER_GAME],
+    ["Correct Answers", score],
+    ["Incorrect Answers / Timeouts", missesUsed()],
+    ["Misses Remaining", misses],
+    ["Game Status", gameOver ? "GAME OVER" : "Quiz Completed"]
+  ].forEach(([label, value]) => {
+    const p = document.createElement("p");
+    const strong = document.createElement("b");
+    strong.textContent = label + ": ";
+    p.append(strong, document.createTextNode(String(value)));
+    summary.appendChild(p);
+  });
+
+  $("resultScore").textContent =
+    `FINAL SCORE: ${score} / ${QUESTIONS_PER_GAME} (${percentage}%)`;
+
+  $("resultMessage").textContent = gameOver
+    ? "You used all five misses. Keep practicing and try again!"
+    : percentage >= 90
+      ? "🏆 Outstanding! You are a Legendary Math Hero!"
+      : percentage >= 75
+        ? "🥇 Great job! Keep improving!"
+        : "💪 Keep practicing, Math Hero!";
+
+  $("battleSummary").textContent =
+    `Hero HP remaining: ${heroHP} | Monster HP remaining: ${monsterHP}`;
+
+  const key = $("answerKey");
+  key.replaceChildren();
+
+  gameQuestions.forEach((item, i) => {
+    const card = document.createElement("div");
+    card.className = "review-item";
+
+    const h = document.createElement("h3");
+    h.textContent = `${i + 1}. ${item.q}`;
+
+    const your = document.createElement("p");
+    const answer = responses[i];
+
+    if (answer === null || answer === undefined) {
+      your.textContent = "Your answer: No answer (time expired)";
+      your.className = "wrong-answer";
+    } else {
+      your.textContent = `Your answer: ${"ABCD"[answer]}. ${item.choices[answer]}`;
+      your.className = answer === item.a ? "correct-answer" : "wrong-answer";
+    }
+
+    const correct = document.createElement("p");
+    correct.className = "correct-answer";
+    correct.textContent = `Correct answer: ${"ABCD"[item.a]}. ${item.choices[item.a]}`;
+
+    const exp = document.createElement("p");
+    exp.textContent = "Explanation: " + item.exp;
+
+    card.append(h, your, correct, exp);
+    key.appendChild(card);
+  });
+}
+
+function missesUsed() {
+  return 5 - misses;
+}
+
+document.querySelectorAll(".hero-choice").forEach(btn => {
+  btn.addEventListener("click", () => {
+    chosenHero = btn.dataset.hero;
+    chosenHeroName = btn.dataset.name;
+
+    document.querySelectorAll(".hero-choice").forEach(other => {
+      other.classList.toggle("selected", other === btn);
+    });
+  });
+});
+
+$("startBtn").addEventListener("click", startGame);
+$("nextBtn").addEventListener("click", nextQuestion);
+
+$("restartBtn").addEventListener("click", () => {
+  clearInterval(timerId);
+  $("results").classList.add("hidden");
+  $("intro").classList.remove("hidden");
+});
+
+$("printBtn").addEventListener("click", () => window.print());
+
+window.addEventListener("beforeunload", () => clearInterval(timerId));
+
+buildBank();
+</script>
+</body>
+</html>
